@@ -115,7 +115,7 @@ for k in range(sim):
         plt.xlim(0,200)
         
     if k==1:
-        plt.step(tt[0:j],i[0:j],'b-',label='k1')
+        plt.step(tt[0:j],i[0:j],'b-',label='k2')
         plt.xlabel('Day')
         plt.ylabel('Infectious Individuals')
         plt.grid(alpha=0.33)
