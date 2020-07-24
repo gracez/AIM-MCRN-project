@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[188]:
+# In[415]:
 
 
 #%% ##################################################
@@ -17,7 +17,7 @@ from scipy.integrate import odeint
 # Rate of infection from infectious individuals
 beta = 0.09
 # Rate of infection from animal resevoir
-tau = 0.1
+tau = .001
 # Recovery rate
 gamma = 0.1
 # Waning rate of immunity
@@ -27,9 +27,9 @@ B0=tau
 B1=.9
 
 # Total population size
-N = 20
+N = 100
 # Initial infecteds
-init = 0
+init = 1
 # Initial conditions as a function of N and init
 X0 = [N-init,init,0]
 
@@ -41,17 +41,17 @@ dt = 0.005
 # Starting time
 tmin = 0
 # Ending time
-tmax = 800
+tmax = 365*4
 # Integration mesh
 t = np.arange(tmin,tmax,dt)
 
 plt.rcParams["figure.figsize"] = (12,6)
 
 
-# In[189]:
+# In[416]:
 
 
-N = 20
+
 #%% ##################################################
 ## Define the Zoonotic ODE Model
 ######################################################
@@ -89,14 +89,15 @@ plt.grid(alpha=0.33)
 plt.show()
 
 
-# In[190]:
+# In[417]:
 
 
-N = 20
+
 def dXsquare_dt(X,t):
     
     if np.cos(2*np.pi/365*t)<0:
-        tau=B0*(1+B1*-1)  
+        tau=B0*(1+B1*-1) 
+        
     elif np.cos(2*np.pi/365*t)>0:
         tau=B0*(1+B1*1) 
     else:
@@ -147,17 +148,17 @@ plt.plot(t,infcos,label='infected',linewidth=2,linestyle='--')
 plt.plot(t,reccos,label='recovered',linewidth=2,linestyle=':')
 plt.xlabel('time',fontsize=13)
 plt.ylabel('population',fontsize=13)
-plt.legend()
+plt.legend('best')
 plt.grid(alpha=0.33)
 plt.show()
 
 plt.plot(t,B0*(1+-B1*np.cos((2*np.pi/365)*t)))
 
 
-# In[118]:
+# In[371]:
 
 
-N = 200
+
 #CTMC
 #%% ##################################################
 ## Set the Numerical Integration Parameters
@@ -250,15 +251,15 @@ print()
 print("Tend1={},Tend2={}".format(Tend[0],Tend[1]))
 
 
-# In[191]:
+# In[372]:
 
 
-N = 20
+
 #parameters
 Tend=np.zeros(len(t)) #initializing a vector of zeros
 casetot=np.zeros(len(t))
 count=0
-sim=1
+sim=3
 
 for k in range(sim):
     
@@ -280,11 +281,13 @@ for k in range(sim):
         #tau=B0*(1+B1*np.cos(2*np.pi/365*tim*dt))
         
         if np.cos(2*np.pi/365*tim*dt)<0:
-            tau=B0*(1+B1*-1)  
+            tau=B0*(1+B1*-1)
+            
         elif np.cos(2*np.pi/365*tim*dt)>0:
             tau=B0*(1+B1*1) 
         else:
             tau=B0*(1)
+           
         
         ev1=beta*i[j]*s[j]/tot*dt
         ev2=ev1+tau*s[j]*dt 
@@ -362,49 +365,71 @@ print("Prob>1 ={}".format(count))
 
 
 
-# In[120]:
+# In[418]:
 
 
-N = 200
+N = 100
 #Euler Maruyama Stochastic Solution
 S=np.zeros(len(t))
 I=np.zeros(len(t))
 R=np.zeros(len(t))
 Tau=np.zeros(len(t))
-m=1
+m=3
 
 for i in range(m):
+    print(i)
     S[0]=N-init
     I[0]=init
     R[0]=0
     Tau[0]=0
     j=0
     
-    while (j<=(len(t)-3)):
-        if (I[j]>=0):
-            f=B0*(1+B1*np.cos((2*np.pi/365)*t[j]))+Tau[j]
+    
+    if (N<101 and N>99):
+        while (j<=(len(t)-3)):
+            if (I[j]>=0):
+                #f=B0*(1+B1*np.cos((2*np.pi/365)*t[j]))+Tau[j]
+                
+                if np.cos(2*np.pi/365*t[j])<0:
+                    f=B0*(1+B1*-1)+Tau[j]
 
-            S[j+1]=S[j]+(-(beta*S[j]*I[j]/N)-(f*S[j])+alpha*R[j])*dt
-            I[j+1]=I[j]+(beta*S[j]*I[j]/N+(f*S[j])-gamma*I[j])*dt
-            R[j+1]=R[j]+(gamma*I[j]-alpha*R[j])*dt
-            Tau[j+1]=Tau[j]+0.01*np.random.randn()*np.sqrt(dt)
-            j=j+1
-            N=S[j]+I[j]+R[j]
+                elif np.cos(2*np.pi/365*t[j])>0:
+                    f=B0*(1+B1*1) +Tau[j]
+                else:
+                    f=B0*(1)+Tau[j]
+
+                S[j+1]=S[j]+(-(beta*S[j]*I[j]/N)-(f*S[j])+alpha*R[j])*dt
+                I[j+1]=I[j]+(beta*S[j]*I[j]/N+(f*S[j])-gamma*I[j])*dt
+                R[j+1]=R[j]+(gamma*I[j]-alpha*R[j])*dt
+                Tau[j+1]=Tau[j]+0.0001*np.random.randn()*np.sqrt(dt)
+                j=j+1
+                N=S[j]+I[j]+R[j]
+
+            else:
+                I[j]=0
+
+                if np.cos(2*np.pi/365*t[j])<0:
+                    f=B0*(1+B1*-1)+Tau[j]
+
+                elif np.cos(2*np.pi/365*t[j])>0:
+                    f=B0*(1+B1*1) +Tau[j]
+                else:
+                    f=B0*(1)+Tau[j]
+
+                S[j+1]=S[j]+(-(beta*S[j]*I[j]/N)-(f*S[j])+alpha*R[j])*dt
+                I[j+1]=I[j]+(beta*S[j]*I[j]/N+(f*S[j])-gamma*I[j])*dt
+                R[j+1]=R[j]+(gamma*I[j]-alpha*R[j])*dt
+                Tau[j+1]=Tau[j]+0.0001*np.random.randn()*np.sqrt(dt)
+                j=j+1
+                N=S[j]+I[j]+R[j]
         
-        else:
-            I[j]=0
-            
-            f=B0*(1+B1*np.cos((2*np.pi/365)*t[j]))+Tau[j]
-
-            S[j+1]=S[j]+(-(beta*S[j]*I[j]/N)-(f*S[j])+alpha*R[j])*dt
-            I[j+1]=I[j]+(beta*S[j]*I[j]/N+(f*S[j])-gamma*I[j])*dt
-            R[j+1]=R[j]+(gamma*I[j]-alpha*R[j])*dt
-            Tau[j+1]=Tau[j]+0.01*np.random.randn()*np.sqrt(dt)
-            j=j+1
-            N=S[j]+I[j]+R[j]
+    else:
+        pass
         
     plt.plot(t[0:j],I[0:j])
-    plt.plot(t,infcos,'k--')
+    plt.plot(t,infsq,'k--',label=('det'))
+    plt.xlabel('Days')
+    plt.ylabel('Infectious')
 
 
 # In[ ]:
