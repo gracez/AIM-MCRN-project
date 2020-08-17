@@ -70,16 +70,14 @@ def sim(beta_0, gamma_0, mu_1=0, mu_2=0):
                     
                     #pick beta and gamma for new case
                     #mutation is a number drawn from normal distribution with std dev mu_1 or mu_2
-                    #don't allow negative beta.
-                    #don't allow gamma to be less than a small value, the natural death rate.
+                    #don't allow negative beta, gamma
                     mut1 = np.random.normal(loc=0.0, scale=mu_1)
                     new_beta = max(0, beta + mut1)
                     mut2 = np.random.normal(loc=0.0, scale=mu_2)              
-                    nat_death = 0.00002366575 #taken from CDC: https://www.cdc.gov/nchs/fastats/deaths.htm & scaled to be daily rate instead of yearly
-                    new_gamma = max(nat_death, gamma + mut2)
+                    new_gamma = max(0, gamma + mut2)
                     
                     #append new person to array of infecteds
-                    infecteds = np.append(infecteds, [[new_beta, new_gamma, new_t]], axis=0)
+                    infecteds.append([new_beta, new_gamma, new_t])
                     N_infected += 1
                     
                     if N_infected >= outbreak_thresh:
